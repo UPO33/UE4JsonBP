@@ -30,6 +30,10 @@ enum class EJsonType : uint8
 	JSON_Object
 };
 
+/*
+an instance of this class represent a json value (null, boolean, number, string, ...)
+use UJsonValue::Make to create the instances  
+*/
 UCLASS(BlueprintType, Transient, NotBlueprintable)
 class JSONBP_API UJsonValue : public UObject
 {
@@ -53,16 +57,20 @@ public:
 	TMap<FString, UJsonValue*> ValueObject;
 	
 	
-
-	UFUNCTION(BlueprintCallable)
+	//returns true if this is a json string
+	UFUNCTION(BlueprintPure)
 	bool GetValueAsString(FString& value);
-	UFUNCTION(BlueprintCallable)
+	//returns true if this is a json boolean 
+	UFUNCTION(BlueprintPure)
 	bool GetValueAsBoolean(bool& value);
-	UFUNCTION(BlueprintCallable)
+	//returns true if this is a json number
+	UFUNCTION(BlueprintPure)
 	bool GetValueAsNumber(float& value);
-	UFUNCTION(BlueprintCallable)
+	//returns true if this is a json array
+	UFUNCTION(BlueprintPure)
 	bool GetValueAsArray(TArray<UJsonValue*>& value);
-	UFUNCTION(BlueprintCallable)
+	//returns true if this is a json object
+	UFUNCTION(BlueprintPure)
 	bool GetValueAsObject(TMap<FString, UJsonValue*>& value);
 
 	UFUNCTION(BlueprintPure)
@@ -73,13 +81,16 @@ public:
 	static UJsonValue* MakeBoolean(bool value);
 	UFUNCTION(BlueprintPure)
 	static UJsonValue* MakeNull();
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, meta=(AutoCreateRefTerm="value"))
 	static UJsonValue* MakeArray(const TArray<UJsonValue*>& value);
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, meta=(AutoCreateRefTerm="value"))
 	static UJsonValue* MakeObject(const TMap<FString, UJsonValue*>& value);
+	//parse the string and make a json from it. returns null of failed.
 	UFUNCTION(BlueprintPure)
-	static UJsonValue* MakeFromString(const FString& jsonValue);
+	static UJsonValue* MakeFromString(const FString& value);
 
+	
+	//returns true if this is a JsonObject and field was set.
 	UFUNCTION(BlueprintCallable)
 	bool SetFieldValue(const FString& field, const UJsonValue* value);
 	UFUNCTION(BlueprintCallable)
@@ -90,17 +101,32 @@ public:
 	bool SetFieldBoolean(const FString& field, bool value);
 	UFUNCTION(BlueprintCallable)
 	bool SetFieldNull(const FString& field);
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, meta=(AutoCreateRefTerm="value"))
 	bool SetFieldArray(const FString& field, const TArray<UJsonValue*>& value);
+	UFUNCTION(BlueprintCallable, meta = (AutoCreateRefTerm = "value"))
+	bool SetFieldObject(const FString& field, const TMap<FString, UJsonValue*>& value);
 
+
+
+	//returns the value of the specified field if any.
 	UFUNCTION(BlueprintPure)
 	UJsonValue* GetFieldValue(const FString& field) const;
+	//return true if this json object has the specified string field
 	UFUNCTION(BlueprintPure)
 	bool GetFieldValueString(const FString& field, FString& value) const;
+	//return true if this json object has the specified number field
 	UFUNCTION(BlueprintPure)
 	bool GetFieldValueNumber(const FString& field, float& value) const;
+	//return true if this json object has the specified boolean field
 	UFUNCTION(BlueprintPure)
 	bool GetFieldValueBoolean(const FString& field, bool& value) const;
+	//return true if this json object has the specified array field
+	UFUNCTION(BlueprintPure)
+	bool GetFieldValueArray(const FString& field, TArray<UJsonValue*>& value) const;
+	//return true if this json object has the specified object field
+	UFUNCTION(BlueprintPure)
+	bool GetFieldValueObject(const FString& field, TMap<FString, UJsonValue*>& value) const;
+
 
 
 	UFUNCTION(BlueprintCallable)
@@ -122,6 +148,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	EJsonType GetType() const { return JsonType; }
 
+	//return an string containing json
 	UFUNCTION(BlueprintPure)
 	FString ToString(bool bPretty) const;
 
@@ -129,8 +156,7 @@ public:
 	static UJsonValue* MakeFromCPPVersion(TSharedPtr<FJsonValue> value);
 	
 	static void Test0();
-
 };
 
-JSONBP_API FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty);
-JSONBP_API FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty);
+JSONBP_API FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty = false);
+JSONBP_API TSharedPtr<FJsonValue> HelperParseJSON(const FString& jsonValue);

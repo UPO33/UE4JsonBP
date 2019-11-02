@@ -6,16 +6,11 @@
 
 void FJsonBPModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	//LoadStates();
-
 	UJsonValue::Test0();
 }
 
 void FJsonBPModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
 }
 
 IMPLEMENT_MODULE(FJsonBPModule, JsonBP)
@@ -244,6 +239,11 @@ bool UJsonValue::SetFieldArray(const FString& field, const TArray<UJsonValue*>& 
 	return SetFieldValue(field, MakeArray(value));
 }
 
+bool UJsonValue::SetFieldObject(const FString& field, const TMap<FString, UJsonValue*>& value)
+{
+	return SetFieldValue(field, MakeObject(value));
+}
+
 UJsonValue* UJsonValue::GetFieldValue(const FString& field) const
 {
 	if (JsonType != EJsonType::JSON_Object)
@@ -281,6 +281,24 @@ bool UJsonValue::GetFieldValueBoolean(const FString& field, bool& value) const
 		return false;
 
 	return pValue->GetValueAsBoolean(value);
+}
+
+bool UJsonValue::GetFieldValueArray(const FString& field, TArray<UJsonValue*>& value) const
+{
+	auto pValue = GetFieldValue(field);
+	if (!pValue)
+		return false;
+
+	return pValue->GetValueAsArray(value);
+}
+
+bool UJsonValue::GetFieldValueObject(const FString& field, TMap<FString, UJsonValue*>& value) const
+{
+	auto pValue = GetFieldValue(field);
+	if (!pValue)
+		return false;
+
+	return pValue->GetValueAsObject(value);
 }
 
 void UJsonValue::SetValueString(const FString& value)
@@ -393,7 +411,11 @@ UJsonValue* UJsonValue::MakeFromCPPVersion(TSharedPtr<FJsonValue> value)
 	case EJson::None : return nullptr;
 	case EJson::Null: return MakeNull();
 	case EJson::String: return MakeString(value->AsString());
-	case EJson::Number: return MakeNumber(value->AsNumber());
+
+	case EJson::Number: 
+		//#NOTE double is not supported in blueprint we should cast to float
+		return MakeNumber((float)value->AsNumber());
+
 	case EJson::Boolean: return MakeBoolean(value->AsBool());
 
 	case EJson::Array:
@@ -430,6 +452,12 @@ UJsonValue* UJsonValue::MakeFromCPPVersion(TSharedPtr<FJsonValue> value)
 	return nullptr;
 }
 
+#if UE_BUILD_SHIPPING
+void UJsonValue::Test0()
+{
+
+}
+#else
 void UJsonValue::Test0()
 {
 	{
@@ -500,3 +528,4 @@ void UJsonValue::Test0()
 	}
 	//ensureAlways(false);
 }
+#endif
