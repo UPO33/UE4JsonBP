@@ -21,6 +21,7 @@ IMPLEMENT_MODULE(FJsonBPModule, JsonBP)
 
 TSharedPtr<FJsonValue> HelperParseJSON(const FString& jsonValue)
 {
+#if 0
 	static FString Str_null("null");
 	static FString Str_true("true");
 	static FString Str_false("false");
@@ -45,27 +46,33 @@ TSharedPtr<FJsonValue> HelperParseJSON(const FString& jsonValue)
 		if (jsonValue.Len() >= 2 && jsonValue[0] == TCHAR('"') && jsonValue[jsonValue.Len() - 1] == TCHAR('"'))
 			return MakeShared<FJsonValueString>(jsonValue.Mid(1, jsonValue.Len() - 2));
 	}
+#endif
 
-	{
-		//this could be another solution
-		////Deserialize function only parse [] or {} so we trick
-		//FString arrayedValue = FString::Printf(TEXT("[%s]"), *jsonValue);
-	}
+	/*
+	#Note
+		FJsonSerializer::Deserialize cant handle types other than [] and {}
+	*/
+	FString arrayedJson;
+	arrayedJson.Reserve(jsonValue.Len() + 8);
+	arrayedJson += TEXT("[");
+	arrayedJson += jsonValue;
+	arrayedJson += TEXT("]");
 
-	TSharedPtr<FJsonValue> jsValue;
-	TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(jsonValue);
-	if (!FJsonSerializer::Deserialize(JsonReader, jsValue) || !jsValue.IsValid())
+	TArray<TSharedPtr<FJsonValue>> resultArray;
+	TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(arrayedJson);
+	if (!FJsonSerializer::Deserialize(JsonReader, resultArray) || resultArray.Num() == 0)
 	{
 		return nullptr;
 	}
 
-	return jsValue;
+	return resultArray[0];
 }
 
 FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty)
 {
 	check(jsValue.IsValid());
 
+#if 0 //not required anymore because this version could not handle string values well.
 	if (jsValue->Type == EJson::Null)
 		return FString("null");
 
@@ -75,21 +82,38 @@ FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty)
 	//#Fixme
 	if (jsValue->Type == EJson::String)
 		return FString::Printf(TEXT(R"("%s")"), *jsValue->AsString());
+#endif // 
 
+	/*
+	#Note
+		FJsonSerializer::Serialize returns false for types other than {} and []
+		it returns false but fills the 'OutputString' with valid value but started with ',' or ',\r\n' depending on pretty printing
+		we do a trick to fix that :)
+
+	#TODO should not I report it as bug ?
+
+	*/
 	FString OutputString;
 	if (bPretty)
 	{
-
-		TSharedRef<TJsonWriter<> > Writer = TJsonWriterFactory<>::Create(&OutputString);
+		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
 		if (!FJsonSerializer::Serialize(jsValue, FString(), Writer))
-			return FString();
+		{
+		}
 	}
 	else
 	{
 		TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>> > Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&OutputString);
 		if (!FJsonSerializer::Serialize(jsValue, FString(), Writer))
-			return FString();
+		{
+		}
 	}
+
+	if (OutputString.Len() > 0 && OutputString[0] == TEXT(','))
+	{
+		OutputString.RemoveAt(0, bPretty ? 3 : 1, false);
+	}
+
 	return OutputString;
 }
 
@@ -462,6 +486,51 @@ void UJsonValue::Test0()
 #else
 void UJsonValue::Test0()
 {
+	const bool pretty = true;
+
+#pragma region deserialize test
+	{
+		auto jsValue = HelperParseJSON(FString(TEXT("123")));
+		ensureAlways(jsValue->AsNumber() == 123);
+
+	}
+#pragma endregion
+
+#pragma region serialize test
+	{
+		TArray<TSharedPtr<FJsonValue>> elements;
+		elements.Add(MakeShared<FJsonValueNumber>(123));
+		elements.Add(MakeShared<FJsonValueNumber>(456));
+		elements.Add(MakeShared<FJsonValueNull>());
+		FString jsonArray = HelperStringifyJSON(MakeShared<FJsonValueArray>(elements), pretty);
+		ensureAlways(jsonArray == FString("[123,456,null]"));
+	}
+	{
+		TSharedPtr<FJsonObject> elements = MakeShared<FJsonObject>();
+		elements->Values.Add("number", MakeShared<FJsonValueString>("hehe"));
+		FString jsObject = HelperStringifyJSON(MakeShared<FJsonValueObject>(elements), pretty);
+		ensureAlways(jsObject == FString("{\"number\":\"hehe\"}"));
+	}
+	{
+		FString json123 = HelperStringifyJSON(MakeShared<FJsonValueNumber>(123), pretty);
+		ensureAlways(json123 == FString("123"));
+	}
+
+	{
+		FString jsonHello = HelperStringifyJSON(MakeShared<FJsonValueString>("hello"), pretty);
+		ensureAlways(jsonHello == FString("\"hello\""));
+	}
+	{
+		FString jsonHello = HelperStringifyJSON(MakeShared<FJsonValueBoolean>(true), pretty);
+		ensureAlways(jsonHello == FString("true"));
+	}
+	{
+		FString jsonHello = HelperStringifyJSON(MakeShared<FJsonValueNull>(), pretty);
+		ensureAlways(jsonHello == FString("null"));
+	}
+#pragma endregion
+
+
 	{
 		UJsonValue* madeFromStr = MakeFromString(FString(R"({asd)"));
 		check(madeFromStr == nullptr);
