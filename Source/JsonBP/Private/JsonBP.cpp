@@ -64,6 +64,8 @@ TSharedPtr<FJsonValue> HelperParseJSON(const FString& jsonValue)
 
 FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty)
 {
+	check(jsValue.IsValid());
+
 	if (jsValue->Type == EJson::Null)
 		return FString("null");
 
