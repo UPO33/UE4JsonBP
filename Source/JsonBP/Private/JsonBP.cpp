@@ -486,7 +486,7 @@ void UJsonValue::Test0()
 #else
 void UJsonValue::Test0()
 {
-	const bool pretty = true;
+	const bool pretty = false;
 
 #pragma region deserialize test
 	{
