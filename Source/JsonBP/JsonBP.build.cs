@@ -6,10 +6,12 @@ public class JsonBP : ModuleRules
 {
 	public JsonBP(ReadOnlyTargetRules Target) : base(Target)
 	{
-		//PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        //PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         //bFasterWithoutUnity = true;
-		
-		PrivateIncludePaths.AddRange(
+
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
             });

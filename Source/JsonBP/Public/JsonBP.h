@@ -160,3 +160,27 @@ public:
 
 JSONBP_API FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty = false);
 JSONBP_API TSharedPtr<FJsonValue> HelperParseJSON(const FString& jsonValue);
+
+
+
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const float number);
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const bool boolean);
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const FString& string);
+
+template<typename TValue> TSharedPtr<FJsonValue> HelperToJSON(const TArray<TValue>& array) 
+{
+	TArray<TSharedPtr<FJsonValue>> elements;
+	elements.AddDefaulted(array.Num());
+	for (int i = 0; i < array.Num(); i++)
+		elements[i] = HelperToJSON(array[i]);
+	
+	return MakeShared<FJsonValueArray>(elements);
+}
+template<typename TValue> FString HelperToJSONString(const TMap<FString, TValue>& map)
+{
+	TSharedPtr<FJsonObject> jsObj = MakeShared<FJsonObject>();
+	for (const auto& mapPair : map) 
+		jsObj->Values.Add(mapPair.Key, HelperToJSON(mapPair.Value));
+
+	return MakeShared<FJsonValueObject>(jsObj);
+}
