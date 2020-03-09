@@ -162,10 +162,12 @@ JSONBP_API FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPre
 JSONBP_API TSharedPtr<FJsonValue> HelperParseJSON(const FString& jsonValue);
 
 
-
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const uint32 number);
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const int number);
 JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const float number);
 JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const bool boolean);
 JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const FString& string);
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const FText& string);
 
 template<typename TValue> TSharedPtr<FJsonValue> HelperToJSON(const TArray<TValue>& array) 
 {

@@ -83,6 +83,21 @@ JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const FString& string)
 	return MakeShared<FJsonValueString>(string);
 }
 
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const uint32 number)
+{
+	return HelperToJSON((float)number);
+}
+
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const int number)
+{
+	return HelperToJSON((float)number);
+}
+
+JSONBP_API TSharedPtr<FJsonValue> HelperToJSON(const FText& string)
+{
+	return HelperToJSON(string.ToString());
+}
+
 FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty)
 {
 	check(jsValue.IsValid());
