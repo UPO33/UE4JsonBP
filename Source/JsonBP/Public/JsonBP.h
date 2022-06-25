@@ -41,20 +41,18 @@ class JSONBP_API UJsonValue : public UObject
 
 private:
 	EJsonType JsonType;
+	bool ValueBool;
+	FString ValueString;	
+	float ValueNumber;
+	UPROPERTY()
+	TArray<UJsonValue*> ValueArray;
+	UPROPERTY()
+	TMap<FString, UJsonValue*> ValueObject;
 
 public:
 	UJsonValue();
 
-	UPROPERTY(BlueprintReadWrite)
-	FString ValueString;
-	UPROPERTY(BlueprintReadWrite)
-	bool ValueBool;
-	UPROPERTY(BlueprintReadWrite)
-	float ValueNumber;
-	UPROPERTY(BlueprintReadWrite)
-	TArray<UJsonValue*> ValueArray;
-	UPROPERTY(BlueprintReadWrite)
-	TMap<FString, UJsonValue*> ValueObject;
+
 	
 	
 	//returns true if this is a json string
@@ -85,12 +83,12 @@ public:
 	static UJsonValue* MakeArray(const TArray<UJsonValue*>& value);
 	UFUNCTION(BlueprintPure, meta=(AutoCreateRefTerm="value"))
 	static UJsonValue* MakeObject(const TMap<FString, UJsonValue*>& value);
-	//parse the string and make a json from it. returns null of failed.
+	//parse the string and make a json from it. returns null if failed.
 	UFUNCTION(BlueprintPure)
 	static UJsonValue* MakeFromString(const FString& value);
 
 	
-	//returns true if this is a JsonObject and field was set.
+	//returns true if this is a json object and field was set.
 	UFUNCTION(BlueprintCallable)
 	bool SetFieldValue(const FString& field, const UJsonValue* value);
 	UFUNCTION(BlueprintCallable)
@@ -128,7 +126,7 @@ public:
 	bool GetFieldValueObject(const FString& field, TMap<FString, UJsonValue*>& value) const;
 
 
-
+	
 	UFUNCTION(BlueprintCallable)
 	void SetValueString(const FString& value);
 	UFUNCTION(BlueprintCallable)
@@ -155,7 +153,6 @@ public:
 	TSharedPtr<FJsonValue> ToCPPVersion() const;
 	static UJsonValue* MakeFromCPPVersion(TSharedPtr<FJsonValue> value);
 	
-	static void Test0();
 };
 
 JSONBP_API FString HelperStringifyJSON(TSharedPtr<FJsonValue> jsValue, bool bPretty = false);

@@ -6,7 +6,6 @@
 
 void FJsonBPModule::StartupModule()
 {
-	UJsonValue::Test0();
 }
 
 void FJsonBPModule::ShutdownModule()
@@ -14,8 +13,6 @@ void FJsonBPModule::ShutdownModule()
 }
 
 IMPLEMENT_MODULE(FJsonBPModule, JsonBP)
-
-
 
 
 
@@ -469,7 +466,7 @@ UJsonValue* UJsonValue::MakeFromCPPVersion(TSharedPtr<FJsonValue> value)
 	case EJson::String: return MakeString(value->AsString());
 
 	case EJson::Number: 
-		//#NOTE double is not supported in blueprint we should cast to float
+		//#NOTE double is not supported in blueprint we cast to float
 		return MakeNumber((float)value->AsNumber());
 
 	case EJson::Boolean: return MakeBoolean(value->AsBool());
@@ -508,12 +505,7 @@ UJsonValue* UJsonValue::MakeFromCPPVersion(TSharedPtr<FJsonValue> value)
 	return nullptr;
 }
 
-#if UE_BUILD_SHIPPING
-void UJsonValue::Test0()
-{
-
-}
-#else
+#if 0
 void UJsonValue::Test0()
 {
 	const bool pretty = false;
